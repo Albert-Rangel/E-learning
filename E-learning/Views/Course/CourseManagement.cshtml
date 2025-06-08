@@ -1,0 +1,55 @@
+﻿@model List<E_learning.Models.Course>
+
+@{
+    ViewData["Title"] = "Gestión de Cursos";
+}
+
+<h2>Gestión de Cursos</h2>
+
+<div class="mt-4">
+    <h3>Lista de Cursos</h3>
+    <p>
+        <a asp-action="Create" class="btn btn-primary">Añadir Nuevo Curso</a>
+    </p>
+    <table class="table table-bordered">
+        <thead>
+            <tr>
+                <th>@Html.DisplayNameFor(model => model.First().CourseId)</th>
+                <th>@Html.DisplayNameFor(model => model.First().Name)</th>
+                <th>@Html.DisplayNameFor(model => model.First().Status)</th>
+                <th>@Html.DisplayNameFor(model => model.First().StartDate)</th> @* New column *@
+                <th>@Html.DisplayNameFor(model => model.First().EndDate)</th>   @* New column *@
+                <th>@Html.DisplayNameFor(model => model.First().Teacher)</th>   @* New column *@
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            @if (Model != null && Model.Any())
+            {
+                @foreach (var item in Model)
+                {
+                    <tr>
+                        <td>@Html.DisplayFor(modelItem => item.CourseId)</td>
+                        <td>@Html.DisplayFor(modelItem => item.Name)</td>
+                        <td>@Html.DisplayFor(modelItem => item.Status)</td>
+                        @* Explicitly format StartDate as MM-dd-yyyy *@
+                        <td>@item.StartDate.ToString("MM-dd-yyyy")</td>
+                        @* Explicitly format EndDate as MM-dd-yyyy *@
+                        <td>@item.EndDate.ToString("MM-dd-yyyy")</td>
+                        <td>@(item.Teacher?.FullName ?? "No Asignado")</td> @* Display teacher name or "No Asignado" *@
+                        <td>
+                            <a asp-action="Edit" asp-route-id="@item.CourseId" class="btn btn-sm btn-info">Editar</a>
+                            <a asp-action="Delete" asp-route-id="@item.CourseId" class="btn btn-sm btn-danger">Eliminar</a>
+                        </td>
+                    </tr>
+                }
+            }
+            else
+            {
+                <tr>
+                    <td colspan="7">No hay cursos disponibles.</td> 
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>

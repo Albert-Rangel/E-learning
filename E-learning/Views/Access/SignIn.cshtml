@@ -1,0 +1,98 @@
+﻿@model E_learning.ViewModels.UserVM
+@{
+    Layout = null; // Esto indica que esta vista no usa un _Layout.cshtml compartido.
+}
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Registrarse</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+</head>
+<body>
+
+    <section class="h-100 bg-dark">
+        <div class="container py-5 h-100">
+            <div class="row d-flex justify-content-center align-items-center h-100">
+
+                <div class="col-12 col-md-8 col-lg-6 mx-auto">
+                    <div class="card card-registration my-4">
+                        <div class="row g-0">
+
+                            <div class="col-12">
+                                <div class="card-body p-md-5 text-black">
+                                    <h3 class="mb-5 text-uppercase text-center">Formulario</h3>
+
+                                    <form asp-controller="Access" asp-action="SignIn" method="post">
+                                        @Html.AntiForgeryToken()
+                                        <div class="text-danger"></div>
+
+                                        <div class="row">
+                                            <div data-mdb-input-init class="form-outline mb-4">
+                                                <div data-mdb-input-init class="form-outline">
+                                                    <input type="text" id="form3Example1m" class="form-control form-control-lg" asp-for="FullName" />
+                                                    <label class="form-label" for="form3Example1m">Nombre Completo</label>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="d-md-flex justify-content-start align-items-center mb-4 py-2">
+                                            <h6 class="mb-0 me-4">Rol: </h6>
+
+                                            <div class="form-check form-check-inline mb-0 me-4">
+                                                <input class="form-check-input" type="radio" name="Role" id="StudentRol"
+                                                       value="Estudiante" asp-for="Role" />
+                                                <label class="form-check-label" for="StudentRol">Estudiante</label>
+                                            </div>
+
+                                            <div class="form-check form-check-inline mb-0 me-4">
+                                                <input class="form-check-input" type="radio" name="Role" id="AdministratorRol"
+                                                       value="Administrador" asp-for="Role" />
+                                                <label class="form-check-label" for="AdministratorRol">Administrador</label>
+                                            </div>
+                                        </div>
+
+                                        <div data-mdb-input-init class="form-outline mb-4">
+                                            <input type="email" id="form3Example97" class="form-control form-control-lg" asp-for="Email" />
+                                            <label class="form-label" for="form3Example97">Email</label>
+                                        </div>
+
+                                        <div data-mdb-input-init class="form-outline mb-4">
+                                            <input type="password" id="form3Example4cg" class="form-control form-control-lg" asp-for="Password" />
+                                            <label class="form-label" for="form3Example4cg">Contraseña</label>
+                                        </div>
+
+                                        <div data-mdb-input-init class="form-outline mb-4">
+                                            <input type="password" id="form3Example4cdg" class="form-control form-control-lg" asp-for="PasswordConfirmation" />
+                                            <label class="form-label" for="form3Example4cdg">Confirmar Contraseña</label>
+                                        </div>
+
+                                        <div class="d-flex justify-content-center pt-3">
+                                            <button type="reset" data-mdb-button-init data-mdb-ripple-init class="btn btn-light btn-lg">Limpiar Campos</button>
+                                            <button type="submit" data-mdb-button-init data-mdb-ripple-init class="btn btn-warning btn-lg ms-2">Enviar</button>
+                                        </div>
+
+                                        @if (ViewData["Mensaje"] != null)
+                                        {
+                                            <div class="alert alert-danger mt-3" role="alert">
+                                                @ViewData["Mensaje"]
+                                            </div>
+                                        }
+
+                                        <p class="text-center text-muted mt-3 mb-0"> ¿Ya tienes una cuenta? <a asp-controller="Access" asp-action="Login" class="fw-bold text-body"><u>Iniciar Sesión</u></a> </p>
+
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/lib/jquery-validation/dist/jquery.validate.min.js"></script>
+    <script src="~/lib/jquery-validation-unobtrusive/jquery.validate.unobtrusive.min.js"></script>
+</body>
+</html>

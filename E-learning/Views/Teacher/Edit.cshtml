@@ -1,0 +1,36 @@
+﻿@model E_learning.Models.User
+
+@{
+    ViewData["Title"] = "Editar Profesor";
+}
+
+<h2>Editar Profesor</h2>
+
+<form asp-action="Edit">
+    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+    <input type="hidden" asp-for="UserId" />
+    <input type="hidden" asp-for="Role" /> @* Keep the Role value, it will be reset in controller to "Profesor" *@
+    <input type="hidden" asp-for="Password" /> @* Keep the Password value, it will be handled by controller logic *@
+
+    <div class="form-group">
+        <label asp-for="FullName" class="control-label"></label>
+        <input asp-for="FullName" class="form-control" />
+        <span asp-validation-for="FullName" class="text-danger"></span>
+    </div>
+    <div class="form-group">
+        <label asp-for="Email" class="control-label"></label>
+        <input asp-for="Email" class="form-control" />
+        <span asp-validation-for="Email" class="text-danger"></span>
+    </div>
+    @* Password field is removed; use ChangePassword action instead *@
+    <div class="form-group mt-3">
+        <input type="submit" value="Guardar Cambios" class="btn btn-primary" />
+        <a asp-action="Index" class="btn btn-secondary">Cancelar</a>
+    </div>
+</form>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

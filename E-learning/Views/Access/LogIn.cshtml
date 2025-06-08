@@ -1,0 +1,72 @@
+﻿@model E_learning.ViewModels.LoginVM
+@{
+    Layout = null; // Esto indica que esta vista no usa un _Layout.cshtml compartido.
+}
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>LogIn</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+</head>
+<body>
+
+    <section class="h-100 bg-dark">
+        <div class="container py-5 h-100">
+            <div class="row d-flex justify-content-center align-items-center h-100">
+
+                <div class="col-12 col-md-8 col-lg-6 mx-auto">
+                    <div class="card card-registration my-4">
+                        <div class="row g-0">
+
+                            <div class="col-12">
+                                <div class="card-body p-md-5 text-black">
+                                    <h3 class="mb-5 text-uppercase text-center">Iniciar Sesion</h3>
+
+                                    <form asp-controller="Access" asp-action="LogIn" method="post">
+
+                                        <div data-mdb-input-init class="form-outline mb-4">
+                                            <input type="email" id="form3Example97" class="form-control form-control-lg" asp-for="Email" />
+                                            <label class="form-label" for="form3Example97">Email</label>
+                                        </div>
+
+                                        <div data-mdb-input-init class="form-outline mb-4">
+                                            <input type="password" id="form3Example4cg" class="form-control form-control-lg" asp-for="Password" />
+                                            <label class="form-label" for="form3Example4cg">Contraseña</label>
+                                        </div>
+
+                                        <div class="d-flex justify-content-center pt-3">
+                                            <button type="reset" data-mdb-button-init data-mdb-ripple-init class="btn btn-light btn-lg">Limpiar Campos</button>
+                                            <button type="submit" data-mdb-button-init data-mdb-ripple-init class="btn btn-warning btn-lg ms-2">Enviar</button>
+                                        </div>
+                                        @* NEW: Display Success Message from TempData *@
+                                        @if (TempData["SuccessMessage"] != null)
+                                        {
+                                            <div class="alert alert-success mt-3" role="alert">
+                                                @TempData["SuccessMessage"]
+                                            </div>
+                                        }
+                                        @if (ViewData["Mensaje"] != null)
+                                        {
+                                            <div class="alert alert-danger mt-3" role="alert">
+                                                @* Agregué mt-3 para un margen superior si hay mensaje *@
+                                                @ViewData["Mensaje"]
+                                            </div>
+                                        }
+
+                                        <p class="text-center text-muted mt-3 mb-0"> ¿No tienes una cuenta? <a asp-controller="Access" asp-action="SignIn" class="fw-bold text-body"><u>Registrarse</u></a> </p>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/lib/jquery-validation/dist/jquery.validate.min.js"></script>
+    <script src="~/lib/jquery-validation-unobtrusive/jquery.validate.unobtrusive.min.js"></script>
+</body>
+</html>

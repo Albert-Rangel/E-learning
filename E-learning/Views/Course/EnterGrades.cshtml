@@ -1,0 +1,164 @@
+﻿@model E_learning.Models.ViewModels.CourseGradeEntryViewModel
+
+@{
+    ViewData["Title"] = $"Notas del Curso: {Model.CourseName}";
+}
+
+<div class="container-fluid">
+    <h2 class="mt-4 mb-4">Ingresar Notas para: @Model.CourseName</h2>
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            @TempData["SuccessMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            @TempData["ErrorMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    @if (!ViewData.ModelState.IsValid)
+    {
+        <div class="alert alert-warning">
+            Por favor, corrige los errores en las notas.
+            @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+        </div>
+    }
+
+    @if (!Model.StudentGrades.Any())
+    {
+        <div class="alert alert-info" role="alert">
+            No hay estudiantes inscritos en este curso para ingresar notas.
+        </div>
+    }
+    else
+    {
+        <form asp-action="SaveGrades" asp-controller="Course" method="post">
+            <input type="hidden" asp-for="CourseId" /> @* Pasar CourseId de vuelta a la acción POST *@
+            <table class="table table-striped table-bordered">
+                <thead class="table-dark">
+                    <tr>
+                        <th>Estudiante</th>
+                        <th>Email</th>
+                        <th>Lapso 1</th>
+                        <th>Lapso 2</th>
+                        <th>Lapso 3</th>
+                        <th>Saldo Total</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @for (int i = 0; i < Model.StudentGrades.Count; i++)
+                    {
+                        <tr>
+                            <td>
+                                @Html.DisplayFor(m => Model.StudentGrades[i].FullName)
+                                <input type="hidden" asp-for="StudentGrades[i].StudentId" />
+                                <input type="hidden" asp-for="StudentGrades[i].FullName" />
+                                <input type="hidden" asp-for="StudentGrades[i].Email" />
+                            </td>
+                            <td>@Html.DisplayFor(m => Model.StudentGrades[i].Email)</td>
+                            <td>
+                                <input asp-for="StudentGrades[i].Lapso1" type="number" step="0.01" min="0" max="20" class="form-control grade-input" /> @* Added class "grade-input" *@
+                                <span asp-validation-for="StudentGrades[i].Lapso1" class="text-danger"></span>
+                            </td>
+                            <td>
+                                <input asp-for="StudentGrades[i].Lapso2" type="number" step="0.01" min="0" max="20" class="form-control grade-input" /> @* Added class "grade-input" *@
+                                <span asp-validation-for="StudentGrades[i].Lapso2" class="text-danger"></span>
+                            </td>
+                            <td>
+                                <input asp-for="StudentGrades[i].Lapso3" type="number" step="0.01" min="0" max="20" class="form-control grade-input" /> @* Added class "grade-input" *@
+                                <span asp-validation-for="StudentGrades[i].Lapso3" class="text-danger"></span>
+                            </td>
+                            <td class="align-middle">
+                                <span id="totalBalance_@(i)">
+                                    @Html.DisplayFor(m => Model.StudentGrades[i].TotalBalance)
+                                </span>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+            <button type="submit" class="btn btn-success mt-3">Guardar Notas</button>
+        </form>
+    }
+
+    <div class="mt-3">
+        <a asp-action="GradesManagement" class="btn btn-secondary">Volver a Gestión de Notas</a>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // Función para calcular y actualizar el saldo total de una fila
+            function updateTotalBalance(row) {
+                const inputs = row.querySelectorAll('input[type="number"]');
+                let sum = 0;
+                let count = 0;
+                inputs.forEach(input => {
+                    if (input.value !== '') {
+                        sum += parseFloat(input.value);
+                        count++;
+                    }
+                });
+                const totalBalanceSpan = row.querySelector('[id^="totalBalance_"]');
+                if (totalBalanceSpan) {
+                    const average = count > 0 ? (sum / count).toFixed(2) : '0.00';
+                    totalBalanceSpan.textContent = average;
+                }
+            }
+
+            // Añadir escuchadores de eventos a todos los campos de entrada de notas
+            // Usamos la nueva clase 'grade-input' para seleccionar los campos de nota
+            const gradeInputs = document.querySelectorAll('.grade-input');
+            gradeInputs.forEach(input => {
+                // Validación en tiempo real al escribir
+                input.addEventListener('input', function () {
+                    let value = parseFloat(this.value);
+                    const max = parseFloat(this.getAttribute('max'));
+
+                    if (this.value !== '' && value > max) {
+                        this.value = ''; // Borra el valor si es mayor que el máximo
+                        // Opcional: Podrías añadir un mensaje de advertencia temporal aquí si lo deseas
+                        // Por ahora, simplemente lo borra
+                    }
+
+                    const row = this.closest('tr');
+                    updateTotalBalance(row);
+                });
+
+                // También re-validar al perder el foco, para capturar casos donde el usuario sale del campo
+                input.addEventListener('blur', function() {
+                    let value = parseFloat(this.value);
+                    const min = parseFloat(this.getAttribute('min'));
+                    const max = parseFloat(this.getAttribute('max'));
+
+                    if (this.value !== '') {
+                        if (value > max) {
+                            this.value = ''; // Borra si excede el máximo
+                        } else if (value < min) { // También manejar el mínimo si es relevante
+                            this.value = ''; // Borra si es menor que el mínimo
+                        }
+                    }
+                    const row = this.closest('tr');
+                    updateTotalBalance(row);
+                });
+            });
+
+            // Cálculo inicial para todas las filas al cargar la página
+            const tableRows = document.querySelectorAll('tbody tr');
+            tableRows.forEach(row => {
+                updateTotalBalance(row);
+            });
+        });
+    </script>
+}

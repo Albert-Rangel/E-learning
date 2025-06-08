@@ -1,0 +1,53 @@
+﻿@model E_learning.Models.User
+
+@{
+    ViewData["Title"] = "Editar Estudiante";
+}
+
+<h1>Editar Estudiante</h1>
+
+<h4>@Model.FullName</h4>
+<hr />
+<div class="row">
+    <div class="col-md-4">
+        <form asp-action="Edit">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <input type="hidden" asp-for="UserId" />
+            <input type="hidden" asp-for="Role" /> @* Keep role hidden unless you want to allow changing it here *@
+
+            <div class="form-group">
+                <label asp-for="FullName" class="control-label"></label>
+                <input asp-for="FullName" class="form-control" />
+                <span asp-validation-for="FullName" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="Email" class="control-label"></label>
+                <input asp-for="Email" class="form-control" />
+                <span asp-validation-for="Email" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="Password" class="control-label">Nueva Contraseña (Dejar en blanco para mantener la actual)</label>
+                <input asp-for="Password" type="password" class="form-control" />
+                <span asp-validation-for="Password" class="text-danger"></span>
+            </div>
+            @* If you have a PasswordConfirmation field in your User model/viewmodel, add it here too *@
+            @* Example:
+            <div class="form-group">
+                <label asp-for="PasswordConfirmation" class="control-label">Confirmar Contraseña</label>
+                <input asp-for="PasswordConfirmation" type="password" class="form-control" />
+                <span asp-validation-for="PasswordConfirmation" class="text-danger"></span>
+            </div>
+            *@
+            <div class="form-group mt-3">
+                <input type="submit" value="Guardar" class="btn btn-primary" />
+                <a asp-action="Index" class="btn btn-secondary">Cancelar</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

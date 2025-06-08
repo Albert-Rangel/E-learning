@@ -1,0 +1,234 @@
+﻿@using System.Security.Claims
+@{
+    // Obtener el nombre del controlador y la acción actuales
+    var currentController = ViewContext.RouteData.Values["controller"]?.ToString();
+    var currentAction = ViewContext.RouteData.Values["action"]?.ToString();
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - E_learning</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/E_learning.styles.css" asp-append-version="true" />
+
+    <link rel="stylesheet" href="//code.jquery.com/ui/1.13.2/themes/base/jquery-ui.css">
+    @* Or if you installed via NuGet, it might be: <link rel="stylesheet" href="~/lib/jquery-ui/jquery-ui.min.css" /> *@
+
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            margin: 0;
+            padding: 0; /* Asegurarse de que el body no tenga padding */
+            overflow-x: hidden; /* Evita el scroll horizontal si hay elementos fuera de lugar */
+        }
+
+        header {
+            /* No aplicar mb-3 aquí, se manejará en la nav */
+            margin-bottom: 0; /* Asegurarse de que el header no agregue margen */
+        }
+
+        .main-wrapper {
+            display: flex;
+            flex: 1;
+            /* Eliminar cualquier margen o padding que pueda empujar el contenido */
+            margin: 0;
+            padding: 0;
+        }
+
+        .sidebar {
+            background-color: #583b7e;
+            padding: 20px;
+            min-width: 200px;
+            max-width: 250px;
+            flex-shrink: 0;
+            height: 100vh;
+            position: sticky;
+            top: 0;
+            overflow-y: auto;
+        }
+
+        .content-area {
+            flex-grow: 1;
+            padding: 20px;
+            background-color: #ffffff;
+        }
+
+        .sidebar .nav-link {
+            color: #ffffff;
+            padding: 10px 15px;
+            border-radius: .25rem;
+            display: block;
+        }
+
+            .sidebar .nav-link:hover {
+                background-color: #4a2f6b;
+                color: #ffffff;
+            }
+
+            .sidebar .nav-link.active {
+                background-color: #007bff;
+                color: white;
+            }
+
+        .sidebar-heading {
+            font-size: 0.85em;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: rgba(255, 255, 255, 0.7);
+            margin-top: 1.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .navbar-custom {
+            background-color: #c9729f !important;
+            /* Importante: eliminar o reducir el margen inferior aquí */
+            margin-bottom: 0 !important; /* Elimina el mb-3 de Bootstrap */
+            border-bottom: none !important; /* Opcional: Elimina la línea si quieres un diseño más limpio */
+            box-shadow: none !important; /* Opcional: Elimina la sombra si quieres un diseño más limpio */
+        }
+
+            .navbar-custom .navbar-brand,
+            .navbar-custom .nav-link {
+                color: #ffffff !important;
+            }
+
+                .navbar-custom .nav-link:hover {
+                    color: #f0f0f0 !important;
+                }
+
+            .navbar-custom .navbar-toggler-icon {
+                background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='rgba%28255, 255, 255, 0.75%29' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e") !important;
+            }
+
+    </style>
+</head>
+<body>
+    <header>
+        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-dark navbar-custom border-bottom box-shadow">
+            <div class="container-fluid">
+                <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">E_learning</a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
+                        aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
+                    <ul class="navbar-nav flex-grow-1">
+                    </ul>
+                    <ul class="navbar-nav ms-auto">
+                        <li class="nav-item">
+                            <form asp-controller="Home" asp-action="LogOut" method="post">
+                                @Html.AntiForgeryToken()
+                                <button type="submit" class="btn btn-warning">Salir</button>
+                            </form>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <div class="main-wrapper">
+        <nav id="sidebarMenu" class="sidebar collapse d-md-block">
+            <div class="position-sticky pt-3">
+                @* Check if the user is in the "Estudiante" role to show this section *@
+                @if (User.IsInRole("Estudiante"))
+                {
+                    <ul class="nav flex-column">
+                        <li class="nav-item">
+                            <a class="nav-link @(currentController == "Home" && currentAction == "Index" ? "active" : "")" aria-current="page" asp-controller="Home" asp-action="Index">
+                                Dashboard
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link @(currentController == "Course" && currentAction == "AvailableCourses" ? "active" : "")" asp-controller="Course" asp-action="AvailableCourses">
+                                Cursos
+                            </a>
+                        </li>
+                    </ul>
+                }
+                @* Check if the user is in the "Administrator" role to show this section *@
+                @if (User.IsInRole("Administrador"))
+                {
+                    <h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1 text-muted text-uppercase">
+                        <span>Administración</span>
+                    </h6>
+                    <ul class="nav flex-column mb-2">
+                        <li class="nav-item">
+                            <a class="nav-link @(currentController == "Course" && currentAction == "CourseManagement" ? "active" : "")" asp-controller="Course" asp-action="CourseManagement">
+                                Gestión de Cursos
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link @(currentController == "Teacher" && currentAction == "Index" ? "active" : "")" asp-controller="Teacher" asp-action="Index">
+                                Gestión de Profesores
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link @(currentController == "Student" && currentAction == "Index" ? "active" : "")" asp-controller="Student" asp-action="Index">
+                                Gestión de Estudiantes
+                            </a>
+                        </li>
+                    </ul>
+                }
+
+                @* Check if the user is in the "Profesor" role to show this section *@
+                @if (User.IsInRole("Profesor"))
+                {
+                    <h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1 text-muted text-uppercase">
+                        <span>Área del Profesor</span>
+                    </h6>
+                    <ul class="nav flex-column mb-2">
+                        <li class="nav-item">
+                            <a class="nav-link @(currentController == "Course" && currentAction == "AssignedCourses" ? "active" : "")" asp-controller="Course" asp-action="AssignedCourses">
+                                Cursos Asignados
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            @* NUEVO MÓDULO DE NOTAS *@
+                            <a class="nav-link @(currentController == "Course" && currentAction == "GradesManagement" ? "active" : "")" asp-controller="Course" asp-action="GradesManagement">
+                                Notas
+                            </a>
+                        </li>
+                    </ul>
+                }
+
+            </div>
+        </nav>
+
+        <main role="main" class="content-area pb-3">
+            @RenderBody()
+        </main>
+    </div>
+
+    <footer class="border-top footer text-muted">
+        <div class="container">
+            &copy; 2025 - E_learning - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
+        </div>
+    </footer>
+
+    @* Importante: El orden de carga de los scripts es CRÍTICO para la validación y localización *@
+    <script src="~/lib/jquery/dist/jquery.min.js"></script> @* Primero jQuery *@
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://code.jquery.com/ui/1.13.2/jquery-ui.js"></script>
+    @* O si instalaste vía NuGet: <script src="~/lib/jquery-ui/jquery-ui.min.js"></script> *@
+
+    @* Luego jQuery Validation y Unobtrusive Validation *@
+    <script src="~/lib/jquery-validation/dist/jquery.validate.min.js"></script>
+    <script src="~/lib/jquery-validation-unobtrusive/jquery.validate.unobtrusive.min.js"></script>
+
+    @* Despu_es, los mensajes de localización para jQuery Validation *@
+    @* Asegúrate de que este archivo exista en tu proyecto en esa ruta:
+       wwwroot/lib/jquery-validation/dist/localization/messages_es.min.js *@
+    <script src="~/lib/jquery-validation/dist/localization/messages_es.min.js"></script>
+
+    <script src="~/js/site.js" asp-append-version="true"></script>
+
+    @* Renderiza la sección de scripts adicionales de la vista (como _ValidationScriptsPartial) *@
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

@@ -1,0 +1,138 @@
+﻿@using System.Linq
+
+@model E_learning.Models.Course
+
+@{
+    ViewData["Title"] = "Crear Nuevo Curso";
+}
+
+<h2>Crear Nuevo Curso</h2>
+
+<form asp-action="Create">
+    <div asp-validation-summary="None" class="text-danger"></div>
+
+    @if (!((IEnumerable<SelectListItem>)ViewBag.TeacherList).Any())
+    {
+        <div class="alert alert-warning" role="alert">
+            Actualmente no hay profesores disponibles para asignar a un curso. Por favor, añada un profesor primero.
+        </div>
+        <p>No se puede crear un curso sin un profesor asignado.</p>
+        <a asp-action="CourseManagement" class="btn btn-secondary mt-3">Volver a la Gestión de Cursos</a>
+    }
+    else
+    {
+        <div class="form-group">
+            <label asp-for="Name" class="control-label"></label>
+            <input asp-for="Name" class="form-control" />
+            <span asp-validation-for="Name" class="text-danger"></span>
+        </div>
+        <div class="form-group">
+            <label asp-for="Description" class="control-label"></label>
+            <textarea asp-for="Description" class="form-control"></textarea>
+            <span asp-validation-for="Description" class="text-danger"></span>
+        </div>
+        <div class="form-group">
+            <label asp-for="Status" class="control-label"></label>
+            <select asp-for="Status" class="form-control">
+                <option value="Activo">Activo</option>
+                <option value="Inactivo">Inactivo</option>
+                <option value="Pendiente">Pendiente</option>
+            </select>
+            <span asp-validation-for="Status" class="text-danger"></span>
+        </div>
+        <div class="form-group">
+            <label asp-for="StartDate" class="control-label">Fecha de Inicio</label>
+            @* Se vuelve a usar type="text" para que jQuery UI Datepicker lo maneje *@
+            <input asp-for="StartDate" type="text" id="startDatePicker" class="form-control" />
+            <span asp-validation-for="StartDate" class="text-danger"></span>
+        </div>
+        <div class="form-group">
+            <label asp-for="EndDate" class="control-label">Fecha de Fin</label>
+            @* Se vuelve a usar type="text" para que jQuery UI Datepicker lo maneje *@
+            <input asp-for="EndDate" type="text" id="endDatePicker" class="form-control" />
+            <span asp-validation-for="EndDate" class="text-danger"></span>
+        </div>
+        <div class="form-group">
+            <label asp-for="TeacherId" class="control-label"></label>
+            <select asp-for="TeacherId" class="form-control" asp-items="ViewBag.TeacherList">
+                <option value="">-- Seleccionar Profesor --</option>
+            </select>
+            <span asp-validation-for="TeacherId" class="text-danger"></span>
+        </div>
+        <div class="form-group mt-3">
+            <input type="submit" value="Crear" class="btn btn-primary" />
+            <a asp-action="CourseManagement" class="btn btn-secondary">Cancelar</a>
+        </div>
+    }
+</form>
+
+@section Scripts {
+    <script>
+        $(function () {
+            // Función para obtener la fecha actual sin la parte de la hora
+            function getToday() {
+                var today = new Date();
+                today.setHours(0, 0, 0, 0); // Establecer la hora a medianoche
+                return today;
+            }
+
+            // Establecer la fecha de inicio por defecto a hoy
+            var defaultStartDate = getToday();
+
+            // Establecer la fecha de fin por defecto a un mes después de la fecha de inicio
+            var defaultEndDate = new Date(defaultStartDate);
+            defaultEndDate.setMonth(defaultEndDate.getMonth() + 1);
+
+            // Inicializar Datepicker de Fecha de Inicio
+            $('#startDatePicker').datepicker({
+                dateFormat: 'dd/mm/yy', // Formato de visualización para el usuario
+                altFormat: 'yy-mm-dd',   // Formato para el campo oculto/original que se envía al servidor
+                altField: '#StartDate',  // El ID del input original (generado por asp-for="StartDate")
+                changeMonth: true,
+                changeYear: true,
+                onSelect: function (selectedDateText, inst) {
+                    var minDateForEnd = $(this).datepicker('getDate');
+                    $('#endDatePicker').datepicker('option', 'minDate', minDateForEnd);
+
+                    // Si la fecha de fin actual es anterior a la nueva fecha de inicio, ajustarla
+                    var currentEndDate = $('#endDatePicker').datepicker('getDate');
+                    if (!currentEndDate || currentEndDate < minDateForEnd) {
+                        $('#endDatePicker').datepicker('setDate', minDateForEnd);
+                    }
+                }
+            });
+
+            // Inicializar Datepicker de Fecha de Fin
+            $('#endDatePicker').datepicker({
+                dateFormat: 'dd/mm/yy', // Formato de visualización para el usuario
+                altFormat: 'yy-mm-dd',   // Formato para el campo oculto/original que se envía al servidor
+                altField: '#EndDate',    // El ID del input original (generado por asp-for="EndDate")
+                changeMonth: true,
+                changeYear: true,
+                onSelect: function (selectedDateText, inst) {
+                    var maxDateForStart = $(this).datepicker('getDate');
+                    $('#startDatePicker').datepicker('option', 'maxDate', maxDateForStart);
+                }
+            });
+
+            // Establecer los valores iniciales en los datepickers
+            $('#startDatePicker').datepicker('setDate', defaultStartDate);
+            $('#endDatePicker').datepicker('setDate', defaultEndDate);
+
+            // Aplicar inmediatamente las restricciones min/max para la validación inicial
+            // Esto asegura que si el usuario no interactúa con el datepicker, las reglas se aplican.
+            var currentStartDate = $('#startDatePicker').datepicker('getDate');
+            if (currentStartDate) {
+                $('#endDatePicker').datepicker('option', 'minDate', currentStartDate);
+            }
+            var currentEndDate = $('#endDatePicker').datepicker('getDate');
+            if (currentEndDate) {
+                $('#startDatePicker').datepicker('option', 'maxDate', currentEndDate);
+            }
+        });
+    </script>
+
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}
