@@ -13,12 +13,15 @@ namespace E_learning.Models
 
         [Required(ErrorMessage = "El nombre del curso es obligatorio.")]
         [StringLength(100, ErrorMessage = "El nombre no puede exceder los 100 caracteres.")]
+        [Display(Name = "Nombre")] // Add this line
         public string Name { get; set; }
 
         [StringLength(500, ErrorMessage = "La descripción no puede exceder los 500 caracteres.")]
+        [Display(Name = "Descripción")] // Add this line
         public string Description { get; set; }
 
         [Required(ErrorMessage = "El estado es obligatorio.")]
+        [Display(Name = "Estado")] // Add this line
         public string Status { get; set; } // "Activo", "Inactivo", "Finalizado"
 
         [Required(ErrorMessage = "La fecha de inicio es obligatoria.")]
@@ -33,6 +36,7 @@ namespace E_learning.Models
 
         // Foreign key for Teacher - CHANGED FROM STRING TO INT
         [Required(ErrorMessage = "Debe asignar un profesor a este curso.")]
+        [Display(Name = "Profesor")] // Add this line
         public int TeacherId { get; set; } // Now matches User.UserId (int)
 
         // Navigation property for Teacher
