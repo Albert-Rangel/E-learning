@@ -7,64 +7,58 @@
 <h1>Gestión de Estudiantes</h1>
 
 <p>
-    Aquí es donde el administrador gestionará los estudiantes.
+    @* Si tienes una acción "Create" para crear nuevos estudiantes, aquí iría el enlace *@
+    @* <a asp-action="Create" class="btn btn-success">Crear Nuevo Estudiante</a> *@
 </p>
 
-@* Display generated password message *@
-@if (TempData["GeneratedPassword"] != null)
-{
-    <div class="alert alert-success alert-dismissible fade show" role="alert">
-        Se ha creado el profesor **@TempData["GeneratedTeacherEmail"]** con la contraseña: <strong>@TempData["GeneratedPassword"]</strong>
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-        <br>
-        <small>Por favor, anote esta contraseña y comuníquesela al profesor. No se mostrará de nuevo.</small>
-    </div>
-}
-
-@* Display other success messages *@
+@* Mostrar mensajes de TempData (éxito o error después de una acción) *@
 @if (TempData["SuccessMessage"] != null)
 {
-    <div class="alert alert-success alert-dismissible fade show" role="alert">
-        @TempData["SuccessMessage"]
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-    </div>
+    <div class="alert alert-success">@TempData["SuccessMessage"]</div>
+}
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="alert alert-danger">@TempData["ErrorMessage"]</div>
 }
 
-
-<div class="mt-4">
-    <h3>Lista de Estudiantes</h3>
-    <table class="table table-bordered">
-        <thead>
+<table class="table table-bordered table-striped">
+    <thead>
+        <tr>
+            <th>Nombre Completo</th>
+            <th>Email</th>
+            <th>Cursos Inscritos</th>
+            <th>Acciones</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var studentUser in Model) // studentUser es ahora un objeto User completo con StudentCourses cargados
+        {
             <tr>
-                <th>@Html.DisplayNameFor(model => model.First().UserId)</th>
-                <th>@Html.DisplayNameFor(model => model.First().FullName)</th>
-                <th>@Html.DisplayNameFor(model => model.First().Email)</th>
-                <th>Acciones</th>
+                <td>@studentUser.FullName</td>
+                <td>@studentUser.Email</td>
+                <td>
+                    @if (studentUser.StudentCourses != null && studentUser.StudentCourses.Any())
+                    {
+                        <ul>
+                            @foreach (var studentCourse in studentUser.StudentCourses)
+                            {
+                                <li>
+                                    @studentCourse.Course.Name - Inscrito el: @studentCourse.EnrollmentDate.ToString("dd/MM/yyyy")
+                                </li>
+                            }
+                        </ul>
+                    }
+                    else
+                    {
+                        <span>No inscrito en ningún curso.</span>
+                    }
+                </td>
+                <td>
+                    <a asp-action="Edit" asp-route-id="@studentUser.UserId" class="btn btn-warning btn-sm">Editar</a>
+                    <a asp-action="ChangePassword" asp-route-id="@studentUser.UserId" class="btn btn-info btn-sm">Cambiar Contraseña</a>
+                    <a asp-action="Delete" asp-route-id="@studentUser.UserId" class="btn btn-danger btn-sm">Eliminar</a>
+                </td>
             </tr>
-        </thead>
-        <tbody>
-            @if (Model != null && Model.Any())
-            {
-                @foreach (var item in Model)
-                {
-                    <tr>
-                        <td>@Html.DisplayFor(modelItem => item.UserId)</td>
-                        <td>@Html.DisplayFor(modelItem => item.FullName)</td>
-                        <td>@Html.DisplayFor(modelItem => item.Email)</td>
-                        <td>
-                            <a asp-action="Edit" asp-route-id="@item.UserId" class="btn btn-sm btn-info me-1">Editar</a>
-                            <a asp-action="ChangePassword" asp-route-id="@item.UserId" class="btn btn-sm btn-warning me-1">Cambiar Contraseña</a>
-                            <a asp-action="Delete" asp-route-id="@item.UserId" class="btn btn-sm btn-danger">Eliminar</a>
-                        </td>
-                    </tr>
-                }
-            }
-            else
-            {
-                <tr>
-                    <td colspan="4">No hay estudiantes disponibles.</td>
-                </tr>
-            }
-        </tbody>
-    </table>
-</div>
+        }
+    </tbody>
+</table>

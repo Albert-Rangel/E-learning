@@ -1,11 +1,10 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿// Data/AppDBContext.cs
+using Microsoft.EntityFrameworkCore;
 using E_learning.Models;
-using System.Security.Claims; 
+// using System.Security.Claims; // No es necesario aquí, se puede eliminar
 
 namespace E_learning.Data
 {
-    // If your User model is part of ASP.NET Core Identity, this should inherit from IdentityDbContext<User>
-    // However, given your User entity configuration, it seems to be a custom User table, so DbContext is fine.
     public class AppDBContext : DbContext
     {
         public AppDBContext(DbContextOptions<AppDBContext> options) : base(options)
@@ -14,8 +13,8 @@ namespace E_learning.Data
 
         public DbSet<User> Users { get; set; }
         public DbSet<Course> Courses { get; set; }
-        public DbSet<StudentCourse> StudentCourses { get; set; } // ADDED: DbSet for StudentCourse
-        public DbSet<Grade> Grades { get; set; } // AÑADIDO: DbSet para Grade
+        public DbSet<StudentCourse> StudentCourses { get; set; }
+        public DbSet<Grade> Grades { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -29,14 +28,24 @@ namespace E_learning.Data
                     .UseIdentityColumn()
                     .ValueGeneratedOnAdd();
 
-                tb.Property(col => col.FullName).HasMaxLength(50);
-                tb.Property(col => col.Email).HasMaxLength(50);
-                tb.Property(col => col.Password).HasMaxLength(50); // Be cautious about storing plain passwords
-                tb.Property(col => col.Role).HasMaxLength(20); // Ensure Role property is configured
+                tb.Property(col => col.FullName).IsRequired().HasMaxLength(50);
+                tb.Property(col => col.Email).IsRequired().HasMaxLength(50);
+                tb.HasIndex(col => col.Email).IsUnique();
 
-                // If User is a custom entity and not directly inheriting from IdentityUser,
-                // and you want to manage roles, you might need to add role-related properties here.
-                tb.ToTable("User"); // Ensure table name matches
+                // Longitud de la contraseña a 128 para hashing
+                tb.Property(col => col.Password).HasMaxLength(128);
+
+                tb.Property(col => col.Role).IsRequired().HasMaxLength(20);
+
+                // Configuración de las nuevas propiedades de perfil para User
+                tb.Property(col => col.DateOfBirth).IsRequired(false); // Es nullable en el modelo
+                tb.Property(col => col.Gender).HasMaxLength(10); // 'Masculino', 'Femenino', 'Otro'
+                tb.Property(col => col.Country).HasMaxLength(100);
+                tb.Property(col => col.NationalIdNumber).HasMaxLength(50);
+                tb.Property(col => col.ProfilePicturePath).HasMaxLength(255); // Ruta a la imagen
+
+
+                tb.ToTable("User"); // Asegura que el nombre de la tabla sea "User"
             });
 
             // Configure the Course entity
@@ -54,17 +63,16 @@ namespace E_learning.Data
                 c.Property(col => col.StartDate).IsRequired();
                 c.Property(col => col.EndDate).IsRequired();
 
-                c.HasOne(co => co.Teacher) // A Course has one Teacher
-                 .WithMany(u => u.TaughtCourses) // Assuming User model has ICollection<Course> TaughtCourses
-                 .HasForeignKey(co => co.TeacherId)
-                 .IsRequired(false) // If TeacherId can be null
-                 .OnDelete(DeleteBehavior.Restrict); // Prevent deleting a User if they are assigned to a course
-                                                     // Use .OnDelete(DeleteBehavior.SetNull) if you want to clear TeacherId on teacher deletion
+                c.HasOne(co => co.Teacher)
+                   .WithMany(u => u.TaughtCourses)
+                   .HasForeignKey(co => co.TeacherId)
+                   .IsRequired(false)
+                   .OnDelete(DeleteBehavior.Restrict);
 
                 c.ToTable("Course");
             });
 
-            // ADDED: Configure the StudentCourse entity
+            // Configure the StudentCourse entity (Tabla de unión para muchos a muchos)
             modelBuilder.Entity<StudentCourse>(sc =>
             {
                 sc.HasKey(col => col.StudentCourseId);
@@ -74,22 +82,22 @@ namespace E_learning.Data
 
                 sc.Property(col => col.EnrollmentDate).IsRequired();
 
-                // Relationship: StudentCourse has one Student (User)
-                sc.HasOne(s => s.Student)
-                  .WithMany(u => u.StudentCourses) // Assuming User model has ICollection<StudentCourse> StudentCourses
-                  .HasForeignKey(s => s.StudentId)
-                  .OnDelete(DeleteBehavior.Restrict); // Or .Cascade, depending on your desired behavior
+                // Relación con Student (User)
+                sc.HasOne(studentCourse => studentCourse.Student) // 'studentCourse' es el objeto StudentCourse, 'studentCourse.Student' es la propiedad de navegación
+                  .WithMany(u => u.StudentCourses)
+                  .HasForeignKey(studentCourse => studentCourse.StudentId) // Clave foránea en StudentCourse que apunta a User
+                  .OnDelete(DeleteBehavior.Restrict);
 
-                // Relationship: StudentCourse has one Course
-                sc.HasOne(s => s.Course)
-                  .WithMany(c => c.StudentCourses) // Assuming Course model has ICollection<StudentCourse> StudentCourses
-                  .HasForeignKey(s => s.CourseId)
-                  .OnDelete(DeleteBehavior.Restrict); // Or .Cascade
+                // Relación con Course
+                sc.HasOne(studentCourse => studentCourse.Course) // 'studentCourse' es el objeto StudentCourse, 'studentCourse.Course' es la propiedad de navegación
+                  .WithMany(c => c.StudentCourses)
+                  .HasForeignKey(studentCourse => studentCourse.CourseId) // Clave foránea en StudentCourse que apunta a Course
+                  .OnDelete(DeleteBehavior.Restrict);
 
-                sc.ToTable("StudentCourse"); // Name your join table
+                sc.ToTable("StudentCourse");
             });
 
-            // AÑADIDO: Configurar la entidad Grade
+            // Configurar la entidad Grade
             modelBuilder.Entity<Grade>(g =>
             {
                 g.HasKey(col => col.GradeId);
@@ -97,17 +105,24 @@ namespace E_learning.Data
                     .UseIdentityColumn()
                     .ValueGeneratedOnAdd();
 
-                g.HasOne(gr => gr.Student) // Una Nota tiene un Estudiante
-                    .WithMany(u => u.Grades) // Un Estudiante puede tener muchas Notas
+                g.Property(gr => gr.Lapso1).HasColumnType("decimal(4, 2)").IsRequired(false);
+                g.Property(gr => gr.Lapso2).HasColumnType("decimal(4, 2)").IsRequired(false);
+                g.Property(gr => gr.Lapso3).HasColumnType("decimal(4, 2)").IsRequired(false);
+
+                g.Property(gr => gr.FinalGrade).HasColumnType("decimal(4, 2)").IsRequired(false);
+                g.Property(gr => gr.LapsoTotal).HasColumnType("decimal(4, 2)").IsRequired(false);
+
+                g.HasOne(gr => gr.Student)
+                    .WithMany(u => u.Grades)
                     .HasForeignKey(gr => gr.StudentId)
-                    .OnDelete(DeleteBehavior.Restrict); // Opcional: restringir eliminación
+                    .OnDelete(DeleteBehavior.Restrict);
 
-                g.HasOne(gr => gr.Course) // Una Nota pertenece a un Curso
-                    .WithMany(c => c.Grades) // Un Curso puede tener muchas Notas
+                g.HasOne(gr => gr.Course)
+                    .WithMany(c => c.Grades)
                     .HasForeignKey(gr => gr.CourseId)
-                    .OnDelete(DeleteBehavior.Restrict); // Opcional: restringir eliminación
+                    .OnDelete(DeleteBehavior.Restrict);
 
-                g.ToTable("Grade"); // Nombre de la tabla
+                g.ToTable("Grade");
             });
         }
     }

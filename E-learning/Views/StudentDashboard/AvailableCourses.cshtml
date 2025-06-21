@@ -1,0 +1,61 @@
+﻿@model IEnumerable<E_learning.Models.Course>
+
+@{
+    ViewData["Title"] = "Cursos Disponibles";
+}
+
+<h1>Cursos Disponibles</h1>
+
+<p>Estudiante: **@ViewBag.StudentName**</p>
+
+@* Mostrar mensajes de TempData *@
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success">@TempData["SuccessMessage"]</div>
+}
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="alert alert-danger">@TempData["ErrorMessage"]</div>
+}
+
+@if (Model != null && Model.Any())
+{
+    <table class="table table-bordered table-striped">
+        <thead>
+            <tr>
+                <th>Curso</th>
+                <th>Descripción</th>
+                <th>Profesor</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var course in Model)
+            {
+                <tr>
+                    <td>@course.Name</td>
+                    <td>@course.Description</td>
+                    <td>@course.Teacher.FullName</td>
+                    <td>
+                        @* Formulario para el botón de inscripción *@
+                        <form asp-controller="StudentDashboard" asp-action="EnrollCourse" method="post" onsubmit="return confirm('¿Estás seguro de que quieres inscribirte en el curso: @course.Name?');">
+                            <input type="hidden" name="id" value="@course.CourseId" />
+                            @Html.AntiForgeryToken()
+                            <button type="submit" class="btn btn-primary btn-sm">Inscribirse</button>
+                        </form>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+else
+{
+    <div class="alert alert-info" role="alert">
+        No hay cursos disponibles para inscribirte en este momento.
+    </div>
+}
+
+<div>
+    <a asp-controller="StudentDashboard" asp-action="Index" class="btn btn-secondary mt-3">Volver al Dashboard</a>
+</div>

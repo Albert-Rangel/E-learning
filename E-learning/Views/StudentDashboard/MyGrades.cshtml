@@ -1,0 +1,65 @@
+﻿@model IEnumerable<E_learning.Models.Grade>
+
+@{
+    ViewData["Title"] = "Mis Notas";
+}
+
+<h1>Mis Notas</h1>
+
+<p>Estudiante: **@ViewBag.StudentName**</p>
+
+@if (Model != null && Model.Any())
+{
+    <table class="table table-bordered table-striped">
+        <thead>
+            <tr>
+                <th>Curso</th>
+                <th>Lapso 1</th>
+                <th>Lapso 2</th>
+                <th>Lapso 3</th>
+                <th>Promedio Final</th>
+                <th>Última Actualización</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var grade in Model)
+            {
+                <tr>
+                    <td>@grade.Course.Name</td>
+                    <td>@(grade.Lapso1?.ToString("F2") ?? "N/A")</td>
+                    <td>@(grade.Lapso2?.ToString("F2") ?? "N/A")</td>
+                    <td>@(grade.Lapso3?.ToString("F2") ?? "N/A")</td>
+                    <td>
+                        @{
+                            var lapsosConNota = new List<decimal>();
+                            if (grade.Lapso1.HasValue) lapsosConNota.Add(grade.Lapso1.Value);
+                            if (grade.Lapso2.HasValue) lapsosConNota.Add(grade.Lapso2.Value);
+                            if (grade.Lapso3.HasValue) lapsosConNota.Add(grade.Lapso3.Value);
+
+                            if (lapsosConNota.Any())
+                            {
+                                decimal promedio = lapsosConNota.Average();
+                                <span class="@(promedio >= 60 ? "text-success" : "text-danger")">@promedio.ToString("F2")</span>
+                            }
+                            else
+                            {
+                                <span>N/A</span>
+                            }
+                        }
+                    </td>
+                    <td>@(grade.LastUpdated?.ToString("dd/MM/yyyy HH:mm") ?? "No disponible")</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+else
+{
+    <div class="alert alert-info" role="alert">
+        Aún no tienes notas registradas.
+    </div>
+}
+
+<div>
+    <a asp-controller="StudentDashboard" asp-action="Index" class="btn btn-secondary mt-3">Volver al Dashboard</a>
+</div>

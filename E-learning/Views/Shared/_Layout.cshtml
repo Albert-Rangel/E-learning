@@ -3,6 +3,21 @@
     // Obtener el nombre del controlador y la acción actuales
     var currentController = ViewContext.RouteData.Values["controller"]?.ToString();
     var currentAction = ViewContext.RouteData.Values["action"]?.ToString();
+
+    // Obtener el nombre completo del usuario directamente de User.Identity.Name
+    var userFullName = User.Identity?.Name;
+
+    // *** NUEVA LÓGICA PARA OBTENER LA RUTA DE LA FOTO DE PERFIL DEL CLAIM ***
+    string profilePicturePath = "/images/default-avatar.png"; // Valor por defecto
+    if (User.Identity.IsAuthenticated)
+    {
+        var profilePictureClaim = User.FindFirst("ProfilePicturePath");
+        if (profilePictureClaim != null && !string.IsNullOrEmpty(profilePictureClaim.Value))
+        {
+            profilePicturePath = profilePictureClaim.Value;
+        }
+    }
+    // *** FIN DE LA NUEVA LÓGICA ***
 }
 <!DOCTYPE html>
 <html lang="en">
@@ -105,6 +120,30 @@
                 background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='rgba%28255, 255, 255, 0.75%29' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e") !important;
             }
 
+        /* Estilos CSS para el avatar y nombre - ¡NUEVOS ESTILOS AQUÍ! */
+        .profile-info {
+            display: flex;
+            align-items: center;
+            padding: 15px;
+            color: white; /* Color del texto en el sidebar oscuro */
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1); /* Separador sutil */
+            margin-bottom: 10px;
+        }
+
+        .profile-avatar {
+            width: 50px; /* Tamaño del avatar */
+            height: 50px;
+            border-radius: 50%; /* Para hacerlo circular */
+            margin-right: 15px;
+            object-fit: cover; /* Asegura que la imagen se ajuste bien */
+            border: 2px solid #fff; /* Borde blanco alrededor del avatar */
+        }
+
+        .profile-name {
+            font-weight: bold;
+            font-size: 1.1em;
+            word-break: break-word; /* Para que los nombres largos no desborden */
+        }
     </style>
 </head>
 <body>
@@ -118,10 +157,13 @@
                 </button>
                 <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
                     <ul class="navbar-nav flex-grow-1">
+                        @* Los enlaces de navegación principales de tu aplicación (como Home y Privacy) si los tuvieras aquí *@
+                        @* En tu caso, los enlaces de rol están en la sidebar, por lo que esta sección queda sin cambios si no tienes enlaces globales aquí *@
                     </ul>
                     <ul class="navbar-nav ms-auto">
                         <li class="nav-item">
                             <form asp-controller="Home" asp-action="LogOut" method="post">
+                                @* Esto asume que tienes un LogOut en HomeController *@
                                 @Html.AntiForgeryToken()
                                 <button type="submit" class="btn btn-warning">Salir</button>
                             </form>
@@ -135,23 +177,52 @@
     <div class="main-wrapper">
         <nav id="sidebarMenu" class="sidebar collapse d-md-block">
             <div class="position-sticky pt-3">
-                @* Check if the user is in the "Estudiante" role to show this section *@
-                @if (User.IsInRole("Estudiante"))
+
+                @* *** CÓDIGO PARA MOSTRAR AVATAR Y NOMBRE (AJUSTADO PARA USAR EL CLAIM DE LA FOTO) *** *@
+                @if (User.Identity.IsAuthenticated) // Comprueba si el usuario está autenticado
                 {
-                    <ul class="nav flex-column">
+                    <div class="profile-info">
+                        <img src="@profilePicturePath" alt="Avatar" class="profile-avatar" /> @* <-- CAMBIO CLAVE AQUÍ *@
+                        <span class="profile-name">@userFullName</span> @* Usa la variable obtenida de User.Identity.Name *@
+                    </div>
+                    <h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1 text-muted text-uppercase">
+                        <span>Mi Perfil</span>
+                    </h6>
+                    <ul class="nav flex-column mb-2">
                         <li class="nav-item">
-                            <a class="nav-link @(currentController == "Home" && currentAction == "Index" ? "active" : "")" aria-current="page" asp-controller="Home" asp-action="Index">
-                                Dashboard
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link @(currentController == "Course" && currentAction == "AvailableCourses" ? "active" : "")" asp-controller="Course" asp-action="AvailableCourses">
-                                Cursos
-                            </a>
+                            <a class="nav-link text-white @(currentController == "Profile" && currentAction == "Index" ? "active" : "")"
+                               asp-area="" asp-controller="Profile" asp-action="Index">Ver/Editar Perfil</a>
                         </li>
                     </ul>
                 }
-                @* Check if the user is in the "Administrator" role to show this section *@
+                @* *** FIN DEL CÓDIGO AJUSTADO *** *@
+
+                @* Check if the user is in the "Estudiante" role to show this section *@
+                @if (User.IsInRole("Estudiante"))
+                {
+                    <h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1 text-muted text-uppercase">
+                        <span>Área del Estudiante</span>
+                    </h6>
+                    <ul class="nav flex-column">
+                        <li class="nav-item">
+                            <a class="nav-link text-white @(ViewContext.RouteData.Values["Controller"].ToString() == "StudentDashboard" && ViewContext.RouteData.Values["Action"].ToString() == "Index" ? "active" : "")"
+                               asp-area="" asp-controller="StudentDashboard" asp-action="Index">Dashboard</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link text-white @(ViewContext.RouteData.Values["Controller"].ToString() == "StudentDashboard" && ViewContext.RouteData.Values["Action"].ToString() == "MyCourses" ? "active" : "")"
+                               asp-area="" asp-controller="StudentDashboard" asp-action="MyCourses">Mis Cursos</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link text-white @(ViewContext.RouteData.Values["Controller"].ToString() == "StudentDashboard" && ViewContext.RouteData.Values["Action"].ToString() == "MyGrades" ? "active" : "")"
+                               asp-area="" asp-controller="StudentDashboard" asp-action="MyGrades">Mis Notas</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link text-white @(ViewContext.RouteData.Values["Controller"].ToString() == "StudentDashboard" && ViewContext.RouteData.Values["Action"].ToString() == "AvailableCourses" ? "active" : "")"
+                               asp-area="" asp-controller="StudentDashboard" asp-action="AvailableCourses">Cursos Disponibles</a>
+                        </li>
+                    </ul>
+                }
+                @* Check if the user is in the "Administrador" role to show this section *@
                 @if (User.IsInRole("Administrador"))
                 {
                     <h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1 text-muted text-uppercase">
@@ -189,7 +260,6 @@
                             </a>
                         </li>
                         <li class="nav-item">
-                            @* NUEVO MÓDULO DE NOTAS *@
                             <a class="nav-link @(currentController == "Course" && currentAction == "GradesManagement" ? "active" : "")" asp-controller="Course" asp-action="GradesManagement">
                                 Notas
                             </a>
@@ -221,9 +291,9 @@
     <script src="~/lib/jquery-validation/dist/jquery.validate.min.js"></script>
     <script src="~/lib/jquery-validation-unobtrusive/jquery.validate.unobtrusive.min.js"></script>
 
-    @* Despu_es, los mensajes de localización para jQuery Validation *@
+    @* Después, los mensajes de localización para jQuery Validation *@
     @* Asegúrate de que este archivo exista en tu proyecto en esa ruta:
-       wwwroot/lib/jquery-validation/dist/localization/messages_es.min.js *@
+        wwwroot/lib/jquery-validation/dist/localization/messages_es.min.js *@
     <script src="~/lib/jquery-validation/dist/localization/messages_es.min.js"></script>
 
     <script src="~/js/site.js" asp-append-version="true"></script>

@@ -5,7 +5,7 @@
 namespace E_learning.Migrations
 {
     /// <inheritdoc />
-    public partial class ModifieDTABLES : Migration
+    public partial class AddProfilePictureToUser : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)

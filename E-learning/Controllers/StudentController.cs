@@ -7,6 +7,8 @@ using E_learning.Models;
 using E_learning.ViewModels; // Assuming you have a UserVM or similar for editing
 using BCrypt.Net;
 using E_learning.Models.ViewModels; // For password hashing/verification
+using System.Linq; // Necesario para .Select()
+using System.Threading.Tasks; // Necesario para Task
 
 namespace E_learning.Controllers
 {
@@ -24,8 +26,11 @@ namespace E_learning.Controllers
         public async Task<IActionResult> Index()
         {
             // Retrieve only users with the "Estudiante" role
+            // *** MODIFICACIÓN AQUÍ: Incluimos StudentCourses y Course ***
             var students = await _context.Users
                                          .Where(u => u.Role == "Estudiante")
+                                         .Include(u => u.StudentCourses) // Incluye las inscripciones del estudiante
+                                             .ThenInclude(sc => sc.Course) // Incluye los datos del curso para cada inscripción
                                          .ToListAsync();
             return View(students);
         }
@@ -191,7 +196,7 @@ namespace E_learning.Controllers
         // Parameters match the 'name' attributes in the form
         public async Task<IActionResult> ChangePassword(ChangePasswordVM model)
         {
-            
+
             // Find the user to update regardless of validation for consistent error redisplay
             var user = await _context.Users.FirstOrDefaultAsync(u => u.UserId == model.UserId && u.Role == "Estudiante");
             if (user == null)
@@ -211,7 +216,7 @@ namespace E_learning.Controllers
             }
 
             // If ModelState is invalid, re-populate ViewBag for display name
-            ViewBag.TeacherFullName = user.FullName;
+            ViewBag.TeacherFullName = user.FullName; // Debería ser ViewBag.StudentFullName o similar aquí
             return View(model); // Return the model with validation errors
         }
     }

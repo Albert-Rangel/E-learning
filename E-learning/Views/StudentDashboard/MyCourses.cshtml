@@ -1,0 +1,61 @@
+﻿@model IEnumerable<E_learning.Models.StudentCourse>
+
+@{
+    ViewData["Title"] = "Mis Cursos";
+}
+
+<h1>Mis Cursos</h1>
+
+<p>Estudiante: **@ViewBag.StudentName**</p>
+
+@* Mostrar mensajes de TempData (éxito o error después de una acción) *@
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success">@TempData["SuccessMessage"]</div>
+}
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="alert alert-danger">@TempData["ErrorMessage"]</div>
+}
+
+@if (Model != null && Model.Any())
+{
+    <table class="table table-bordered table-striped">
+        <thead>
+            <tr>
+                <th>Curso</th>
+                <th>Profesor</th>
+                <th>Fecha de Inscripción</th>
+                <th>Acciones</th> @* <-- NUEVA COLUMNA PARA EL BOTÓN *@
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var studentCourse in Model)
+            {
+                <tr>
+                    <td>@studentCourse.Course.Name</td>
+                    <td>@studentCourse.Course.Teacher.FullName</td>
+                    <td>@studentCourse.EnrollmentDate.ToString("dd/MM/yyyy")</td>
+                    <td>
+                        @* Formulario para el botón de desinscripción *@
+                        <form asp-controller="StudentDashboard" asp-action="UnenrollCourse" method="post" onsubmit="return confirm('¿Estás seguro de que quieres desinscribirte de este curso? Esta acción no se puede deshacer.');">
+                            <input type="hidden" name="id" value="@studentCourse.StudentCourseId" />
+                            @Html.AntiForgeryToken() @* ¡Importante para la seguridad! *@
+                            <button type="submit" class="btn btn-danger btn-sm">Desinscribirse</button>
+                        </form>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+else
+{
+    <div class="alert alert-info" role="alert">
+        No estás inscrito en ningún curso aún.
+    </div>
+}
+
+<div>
+    <a asp-controller="StudentDashboard" asp-action="Index" class="btn btn-secondary mt-3">Volver al Dashboard</a>
+</div>

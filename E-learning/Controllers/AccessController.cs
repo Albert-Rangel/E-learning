@@ -91,25 +91,30 @@ namespace E_learning.Controllers
                 return View(model);
             }
 
-            // --- CRITICAL PART: Ensure both NameIdentifier and Role claims are added ---
+            // --- INICIO DE LA MODIFICACIÓN CRÍTICA ---
             List<Claim> claims = new List<Claim>()
             {
-                new Claim(ClaimTypes.Name, user_Found.FullName),
-                new Claim(ClaimTypes.NameIdentifier, user_Found.UserId.ToString()) // <-- THIS IS VITAL
+                new Claim(ClaimTypes.NameIdentifier, user_Found.UserId.ToString()), // ID del usuario (esencial para identificar al usuario)
+                new Claim(ClaimTypes.Name, user_Found.FullName) // Nombre completo del usuario para User.Identity.Name
             };
+
+            // Asegúrate de que user_Found.ProfilePicturePath contenga la ruta correcta
+            // Si es null o vacío, usa la ruta por defecto.
+            claims.Add(new Claim("ProfilePicturePath", user_Found.ProfilePicturePath ?? "/images/default-avatar.png")); // <-- ¡AÑADIR ESTE CLAIM!
 
             // Add the role claim if a role exists on your User model
             if (!string.IsNullOrEmpty(user_Found.Role))
             {
-                claims.Add(new Claim(ClaimTypes.Role, user_Found.Role)); // <-- THIS IS ALSO VITAL
+                claims.Add(new Claim(ClaimTypes.Role, user_Found.Role)); // Rol del usuario (esencial para User.IsInRole)
             }
-            // --- END CRITICAL PART ---
+            // --- FIN DE LA MODIFICACIÓN CRÍTICA ---
 
             ClaimsIdentity claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
             AuthenticationProperties properties = new AuthenticationProperties()
             {
                 AllowRefresh = true,
                 // You might want to set IsPersistent = model.RememberMe (if you have this checkbox)
+                ExpiresUtc = DateTimeOffset.UtcNow.AddMinutes(5) // Coincide con el tiempo de expiración del cookie en Program.cs
             };
 
             await HttpContext.SignInAsync(
@@ -118,9 +123,22 @@ namespace E_learning.Controllers
                 properties
             );
 
+            // Redirección basada en el rol del usuario
+            if (user_Found.Role == "Estudiante")
+            {
+                return RedirectToAction("Index", "StudentDashboard");
+            }
+            else if (user_Found.Role == "Profesor")
+            {
+                return RedirectToAction("AssignedCourses", "Course");
+            }
+            else if (user_Found.Role == "Administrador")
+            {
+                return RedirectToAction("CourseManagement", "Course");
+            }
+
+            // En caso de que el rol no coincida con ninguno de los anteriores
             return RedirectToAction("Index", "Home");
         }
-
-
     }
 }

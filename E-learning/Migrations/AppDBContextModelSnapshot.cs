@@ -72,14 +72,20 @@ namespace E_learning.Migrations
                     b.Property<int>("CourseId")
                         .HasColumnType("int");
 
+                    b.Property<decimal?>("FinalGrade")
+                        .HasColumnType("decimal(4, 2)");
+
                     b.Property<decimal?>("Lapso1")
-                        .HasColumnType("decimal(18,2)");
+                        .HasColumnType("decimal(4, 2)");
 
                     b.Property<decimal?>("Lapso2")
-                        .HasColumnType("decimal(18,2)");
+                        .HasColumnType("decimal(4, 2)");
 
                     b.Property<decimal?>("Lapso3")
-                        .HasColumnType("decimal(18,2)");
+                        .HasColumnType("decimal(4, 2)");
+
+                    b.Property<decimal?>("LapsoTotal")
+                        .HasColumnType("decimal(4, 2)");
 
                     b.Property<DateTime?>("LastUpdated")
                         .HasColumnType("datetime2");
@@ -130,6 +136,13 @@ namespace E_learning.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("UserId"));
 
+                    b.Property<string>("Country")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<DateTime?>("DateOfBirth")
+                        .HasColumnType("datetime2");
+
                     b.Property<string>("Email")
                         .IsRequired()
                         .HasMaxLength(50)
@@ -140,9 +153,21 @@ namespace E_learning.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
 
-                    b.Property<string>("Password")
+                    b.Property<string>("Gender")
+                        .HasMaxLength(10)
+                        .HasColumnType("nvarchar(10)");
+
+                    b.Property<string>("NationalIdNumber")
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
+
+                    b.Property<string>("Password")
+                        .HasMaxLength(128)
+                        .HasColumnType("nvarchar(128)");
+
+                    b.Property<string>("ProfilePicturePath")
+                        .HasMaxLength(255)
+                        .HasColumnType("nvarchar(255)");
 
                     b.Property<string>("Role")
                         .IsRequired()
@@ -150,6 +175,9 @@ namespace E_learning.Migrations
                         .HasColumnType("nvarchar(20)");
 
                     b.HasKey("UserId");
+
+                    b.HasIndex("Email")
+                        .IsUnique();
 
                     b.ToTable("User", (string)null);
                 });

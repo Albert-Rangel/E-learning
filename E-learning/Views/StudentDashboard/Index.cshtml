@@ -1,0 +1,29 @@
+﻿@{
+    ViewData["Title"] = "Panel del Estudiante";
+}
+
+<h1>Bienvenido, @ViewBag.StudentName</h1>
+
+<p>Desde aquí puedes acceder a tus cursos, notas y perfil.</p>
+
+<div class="row">
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Mis Notas</h5>
+                <p class="card-text">Consulta tus calificaciones por lapso y el promedio final.</p>
+                <a asp-controller="StudentDashboard" asp-action="MyGrades" class="btn btn-primary">Ver Notas</a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Mis Cursos</h5>
+                <p class="card-text">Explora los cursos en los que estás inscrito.</p>
+                <a asp-controller="StudentDashboard" asp-action="MyCourses" class="btn btn-primary">Ver Cursos</a>
+            </div>
+        </div>
+    </div>
+    @* Puedes añadir más tarjetas aquí, por ejemplo, para el perfil *@
+</div>
